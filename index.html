@@ -3,38 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma de Fechamento de Custos v2.0</title>
+    <title>Cronograma de Fechamento de Custos v2.2</title>
     <style>
-        /* Estilos (sem alterações, mantidos da versão anterior para consistência) */
+        /* Estilos Gerais */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 950px; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+        .container { width: 100%; max-width: 1100px; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
         h1, h2 { color: #1a3b5d; border-bottom: 2px solid #eef2f5; padding-bottom: 10px; margin-top: 0; }
-        .controls { display: flex; gap: 15px; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
+        
+        /* Controles */
+        .controls { display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
         .control-group { display: flex; flex-direction: column; }
         label { font-size: 14px; font-weight: 600; color: #5a7184; margin-bottom: 5px; }
-        input[type="date"], button { padding: 10px 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; outline: none; transition: all 0.2s ease; }
-        input[type="date"]:focus, button:focus { border-color: #007bff; box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2); }
+        input[type="date"], input[type="text"], button { padding: 10px 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; outline: none; transition: all 0.2s ease; }
+        input[type="date"]:focus, input[type="text"]:focus, button:focus { border-color: #007bff; box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2); }
         button { background-color: #007bff; color: white; font-weight: 600; cursor: pointer; border: none; }
         button:hover { background-color: #0056b3; }
         #print-button { background-color: #28a745; }
         #print-button:hover { background-color: #1e7e34; }
         #clear-button { background-color: #dc3545; }
         #clear-button:hover { background-color: #c82333; }
+        
+        /* NOVO: Painel de Resumo */
+        #summary-panel {
+            display: none;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #eef2f5;
+        }
+        .summary-item {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+        .summary-item .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a3b5d;
+        }
+        .summary-item .label {
+            font-size: 14px;
+            color: #5a7184;
+        }
+
+        /* Tabela */
         #results { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eef2f5; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eef2f5; vertical-align: middle; }
         th { background-color: #f8f9fa; font-weight: 600; color: #1a3b5d; }
         tr:hover { background-color: #f1f5f8; }
+        
+        /* NOVO: Destaque do dia atual */
+        tr.today-highlight {
+            background-color: #fffbe6; /* Amarelo claro */
+        }
+        tr.today-highlight:hover {
+            background-color: #fff3cd;
+        }
+
+        /* Status */
         .status { padding: 5px 10px; border-radius: 15px; font-weight: 600; font-size: 12px; text-align: center; display: inline-block; min-width: 80px; }
         .status.previsto { background-color: #e9ecef; color: #495057; }
         .status.no-prazo { background-color: #d4edda; color: #155724; }
         .status.atrasado { background-color: #f8d7da; color: #721c24; }
+
+        /* Impressão */
         @media print {
             body { padding: 0; background-color: #fff; }
             .container { box-shadow: none; padding: 0; max-width: 100%; }
-            .controls { display: none; }
+            .controls, #summary-panel { display: none; }
             #results { display: block !important; }
             h2 { text-align: center; font-size: 1.5em; }
+            input[type="date"], input[type="text"] { border: none; background: transparent; }
         }
     </style>
 </head>
@@ -56,6 +99,30 @@
         </div>
     </div>
 
+    <!-- NOVO: Painel de Resumo -->
+    <div id="summary-panel">
+        <div class="summary-item">
+            <div id="summary-total" class="value">0</div>
+            <div class="label">Total</div>
+        </div>
+        <div class="summary-item">
+            <div id="summary-concluidos" class="value">0</div>
+            <div class="label">Concluídos</div>
+        </div>
+        <div class="summary-item">
+            <div id="summary-no-prazo" class="value">0</div>
+            <div class="label">No Prazo</div>
+        </div>
+        <div class="summary-item">
+            <div id="summary-atrasados" class="value">0</div>
+            <div class="label">Atrasados</div>
+        </div>
+        <div class="summary-item">
+            <div id="summary-pendentes" class="value">0</div>
+            <div class="label">Pendentes</div>
+        </div>
+    </div>
+
     <div id="results">
         <h2 id="cronograma-title"></h2>
         <table>
@@ -64,8 +131,9 @@
                     <th>Segmento / Atividade</th>
                     <th>Responsável</th>
                     <th>Prazo Previsto</th>
-                    <th>Data Real (Conclusão)</th>
+                    <th>Data Real</th>
                     <th>Status</th>
+                    <th>Observações</th>
                 </tr>
             </thead>
             <tbody id="cronograma-body"></tbody>
@@ -75,6 +143,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Elementos da UI ---
     const startDateInput = document.getElementById('start-date');
     const calculateBtn = document.getElementById('calculate-btn');
     const printBtn = document.getElementById('print-button');
@@ -82,22 +151,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsDiv = document.getElementById('results');
     const cronogramaTitle = document.getElementById('cronograma-title');
     const cronogramaBody = document.getElementById('cronograma-body');
+    const summaryPanel = document.getElementById('summary-panel');
 
-    // --- NOVA FUNCIONALIDADE: Feriados Nacionais + Regionais (Votuporanga-SP) ---
-    const feriados = [
-        // Nacionais 2025
-        "2025-01-01", "2025-03-03", "2025-03-04", "2025-04-18", "2025-04-21", "2025-05-01", "2025-06-19", "2025-09-07", "2025-11-02", "2025-11-15", "2025-11-20",
-        // Regionais (Votuporanga-SP)
-        "2025-08-08", // Aniversário da cidade
-        "2025-10-12", // Padroeira (Nossa Senhora Aparecida) - já é nacional
-    ];
+    // --- Feriados ---
+    const feriados = [ "2025-01-01", "2025-03-03", "2025-03-04", "2025-04-18", "2025-04-21", "2025-05-01", "2025-06-19", "2025-09-07", "2025-11-02", "2025-11-15", "2025-11-20", "2025-08-08", "2025-10-12" ];
 
+    // --- Funções de Data ---
     function isDiaUtil(date) {
         const day = date.getDay();
         if (day === 0) return false;
         const dateString = date.toISOString().split('T')[0];
-        if (feriados.includes(dateString)) return false;
-        return true;
+        return !feriados.includes(dateString);
     }
 
     function addDiasUteis(startDate, days) {
@@ -109,14 +173,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 addedDays++;
             }
         }
+        while (!isDiaUtil(currentDate)) {
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
         return currentDate;
     }
 
     function formatDate(date) {
         const adjustedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-        return adjustedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + " (" + adjustedDate.toLocaleDateString('pt-BR', { weekday: 'long' }) + ")";
+        return adjustedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + " (" + adjustedDate.toLocaleDateString('pt-BR', { weekday: 'long' }).split('-')[0] + ")";
     }
 
+    // --- NOVO: Nomes dos analistas atualizados ---
     const cronogramaConfig = [
         { id: "adm", segmento: "Administrativo", responsavel: "Sabrina", prazoDias: 2 },
         { id: "veiculos_leves", segmento: "Veículos Leves", responsavel: "João", prazoDias: 2 },
@@ -130,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: "global", segmento: "GLOBAL", responsavel: "João", prazoDias: 7, isBold: true },
     ];
 
+    // --- Função Principal de Geração ---
     function generateCronograma() {
         const startDateValue = startDateInput.value;
         if (!startDateValue) {
@@ -137,69 +206,85 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Salva a data de início para recarregar depois
         localStorage.setItem('cronograma_startDate', startDateValue);
-
         const baseDate = new Date(startDateValue);
         const mesReferencia = new Date(baseDate);
         mesReferencia.setMonth(mesReferencia.getMonth());
         cronogramaTitle.textContent = `Cronograma de Fechamento - Referência: ${mesReferencia.toLocaleString('pt-BR', { month: 'long' })}/${mesReferencia.getFullYear()}`;
-
         cronogramaBody.innerHTML = '';
+
+        const todayString = new Date().toISOString().split('T')[0];
 
         cronogramaConfig.forEach(item => {
             const prazoDate = addDiasUteis(baseDate, item.prazoDias - 1);
+            const prazoDateString = prazoDate.toISOString().split('T')[0];
             const row = document.createElement('tr');
 
+            // NOVO: Destaque do dia atual
+            if (prazoDateString === todayString) {
+                row.classList.add('today-highlight');
+            }
+
+            // NOVO: Coluna de Observações adicionada
             row.innerHTML = `
                 <td>${item.isBold ? `<strong>${item.segmento}</strong>` : item.segmento}</td>
                 <td>${item.responsavel}</td>
                 <td>${formatDate(prazoDate)}</td>
                 <td><input type="date" class="real-date-input" data-id="${item.id}"></td>
                 <td><span class="status previsto">Previsto</span></td>
+                <td><input type="text" class="obs-input" data-id="${item.id}" placeholder="Adicionar nota..."></td>
             `;
 
             const realDateInput = row.querySelector('.real-date-input');
+            const obsInput = row.querySelector('.obs-input');
             const statusSpan = row.querySelector('.status');
 
-            // --- NOVA FUNCIONALIDADE: Carrega dados salvos ---
+            // Carrega dados salvos (data e observação)
             const savedDate = localStorage.getItem(`cronograma_date_${item.id}`);
+            const savedObs = localStorage.getItem(`cronograma_obs_${item.id}`);
             if (savedDate) {
                 realDateInput.value = savedDate;
                 updateStatus(realDateInput, statusSpan, prazoDate);
             }
+            if (savedObs) {
+                obsInput.value = savedObs;
+            }
 
+            // Adiciona listeners para salvar alterações
             realDateInput.addEventListener('change', function() {
                 updateStatus(this, statusSpan, prazoDate);
-                // --- NOVA FUNCIONALIDADE: Salva a data ao ser alterada ---
-                if (this.value) {
-                    localStorage.setItem(`cronograma_date_${this.id}`, this.value);
-                } else {
-                    localStorage.removeItem(`cronograma_date_${this.id}`);
-                }
+                if (this.value) localStorage.setItem(`cronograma_date_${this.id}`, this.value);
+                else localStorage.removeItem(`cronograma_date_${this.id}`);
+                updateSummary();
+            });
+            obsInput.addEventListener('input', function() {
+                if (this.value) localStorage.setItem(`cronograma_obs_${this.id}`, this.value);
+                else localStorage.removeItem(`cronograma_obs_${this.id}`);
             });
 
             cronogramaBody.appendChild(row);
         });
 
         resultsDiv.style.display = 'block';
+        summaryPanel.style.display = 'flex';
         printBtn.style.display = 'inline-block';
         clearBtn.style.display = 'inline-block';
+        updateSummary();
     }
 
+    // --- Funções de Atualização de Status e Resumo ---
     function updateStatus(inputElement, statusSpan, prazoDate) {
+        statusSpan.className = 'status'; // Limpa classes
         if (!inputElement.value) {
-            statusSpan.className = 'status previsto';
+            statusSpan.classList.add('previsto');
             statusSpan.textContent = 'Previsto';
             return;
         }
         const realDate = new Date(inputElement.value);
         const prazo = new Date(prazoDate);
-        
         const realUTC = Date.UTC(realDate.getFullYear(), realDate.getMonth(), realDate.getDate());
         const prazoUTC = Date.UTC(prazo.getFullYear(), prazo.getMonth(), prazo.getDate());
 
-        statusSpan.className = 'status'; // Limpa classes antigas
         if (realUTC <= prazoUTC) {
             statusSpan.classList.add('no-prazo');
             statusSpan.textContent = 'No Prazo';
@@ -209,20 +294,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // NOVO: Função para atualizar o painel de resumo
+    function updateSummary() {
+        const rows = cronogramaBody.querySelectorAll('tr');
+        let concluidos = 0, noPrazo = 0, atrasados = 0;
+        
+        rows.forEach(row => {
+            const status = row.querySelector('.status').textContent;
+            if (status === 'No Prazo' || status === 'Atrasado') {
+                concluidos++;
+                if (status === 'No Prazo') noPrazo++;
+                else atrasados++;
+            }
+        });
+        
+        const total = cronogramaConfig.length;
+        document.getElementById('summary-total').textContent = total;
+        document.getElementById('summary-concluidos').textContent = concluidos;
+        document.getElementById('summary-no-prazo').textContent = noPrazo;
+        document.getElementById('summary-atrasados').textContent = atrasados;
+        document.getElementById('summary-pendentes').textContent = total - concluidos;
+    }
+
     // --- Event Listeners ---
     calculateBtn.addEventListener('click', generateCronograma);
     printBtn.addEventListener('click', () => window.print());
     clearBtn.addEventListener('click', () => {
-        if (confirm("Tem certeza que deseja limpar todas as datas de conclusão salvas?")) {
+        if (confirm("Tem certeza que deseja limpar todas as datas e observações salvas?")) {
             localStorage.clear();
             startDateInput.value = '';
             resultsDiv.style.display = 'none';
+            summaryPanel.style.display = 'none';
             printBtn.style.display = 'none';
             clearBtn.style.display = 'none';
         }
     });
 
-    // --- NOVA FUNCIONALIDADE: Carrega o último estado ao abrir a página ---
+    // Carrega o último estado ao abrir a página
     const savedStartDate = localStorage.getItem('cronograma_startDate');
     if (savedStartDate) {
         startDateInput.value = savedStartDate;
@@ -233,4 +341,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-
